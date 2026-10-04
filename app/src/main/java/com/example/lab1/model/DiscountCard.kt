@@ -7,5 +7,5 @@ data class DiscountCard(
     val shopName: String,
     val barcodeNumber: String,
     val categoryId: Int,
-    val color: Color
+    val colorHex: Long
 )
