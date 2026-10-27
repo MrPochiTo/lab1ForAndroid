@@ -8,6 +8,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.lab1.ui.MainViewModel
+import com.example.lab1.ui.getCategoryIcon
 import com.example.lab1.ui.main.BarcodeView
 
 val availableColors = listOf(
@@ -33,9 +36,36 @@ val availableColors = listOf(
 fun CardDetailScreen(
     cardId: Int,
     viewModel: MainViewModel,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onEditClick: () -> Unit
 ) {
-    val card = viewModel.getCard(cardId) ?: return
+    val cards by viewModel.cards.collectAsState()
+    val card = cards.find { it.id == cardId } ?: return
+    val category = viewModel.getCategory(card.categoryId)
+
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Удалить карту?") },
+            text = { Text("Карта «" + card.shopName + "» будет удалена без возможности восстановления.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDeleteDialog = false
+                    viewModel.deleteCard(card)
+                    onBackClick()
+                }) {
+                    Text("Удалить")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Отмена")
+                }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -46,10 +76,19 @@ fun CardDetailScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
                     }
                 },
+                actions = {
+                    IconButton(onClick = onEditClick) {
+                        Icon(Icons.Default.Edit, contentDescription = "Редактировать")
+                    }
+                    IconButton(onClick = { showDeleteDialog = true }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Удалить")
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color(card.colorHex),
                     titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
+                    navigationIconContentColor = Color.White,
+                    actionIconContentColor = Color.White
                 )
             )
         }
@@ -61,7 +100,7 @@ fun CardDetailScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Карточка с градиентом/цветом
+            // Карточка с цветом
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -87,7 +126,24 @@ fun CardDetailScreen(
                 BarcodeView(barcodeNumber = card.barcodeNumber)
             }
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(16.dp))
+
+            // Категория
+            if (category != null) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = getCategoryIcon(category.icon),
+                        contentDescription = null
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = category.name,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(24.dp))
 
             // Выбор индивидуального цвета
             Text(
@@ -113,7 +169,7 @@ fun CardDetailScreen(
                                 shape = CircleShape
                             )
                             .clickable {
-                                viewModel.updateCardColor(card.id, colorHex)
+                                viewModel.updateCardColor(card, colorHex)
                             }
                     )
                 }

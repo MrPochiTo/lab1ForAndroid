@@ -9,6 +9,8 @@ import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,8 +20,8 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import com.example.lab1.data.mockCategories
 import com.example.lab1.ui.MainViewModel
+import com.example.lab1.ui.getCategoryIcon
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 
@@ -44,6 +46,11 @@ fun ScanCardScreen(
     var scannedBarcode by remember { mutableStateOf("") }
     var shopName by remember { mutableStateOf("") }
 
+    // По умолчанию выбрана первая категория из JSON
+    var selectedCategoryId by remember {
+        mutableStateOf(if (viewModel.categories.isEmpty()) 0 else viewModel.categories[0].id)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -64,7 +71,6 @@ fun ScanCardScreen(
                 })
             }
         } else {
-
             Text(
                 text = "Для сканирования штрихкода необходим доступ к камере",
                 style = MaterialTheme.typography.bodyLarge
@@ -95,6 +101,25 @@ fun ScanCardScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
+        Spacer(Modifier.height(8.dp))
+
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(viewModel.categories, key = { it.id }) { cat ->
+                FilterChip(
+                    selected = selectedCategoryId == cat.id,
+                    onClick = { selectedCategoryId = cat.id },
+                    label = { Text(cat.name) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = getCategoryIcon(cat.icon),
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                )
+            }
+        }
+
         Spacer(Modifier.height(16.dp))
 
         Button(
@@ -103,7 +128,7 @@ fun ScanCardScreen(
                 viewModel.addCard(
                     shopName = shopName,
                     barcode = scannedBarcode,
-                    categoryId = mockCategories.first().id,
+                    categoryId = selectedCategoryId,
                     colorHex = availableColors.random()
                 )
                 onCardAdded()

@@ -1,0 +1,6 @@
+[
+  { "id": 1, "name": "Супермаркеты", "icon": "shopping_cart" },
+  { "id": 2, "name": "Одежда", "icon": "checkroom" },
+  { "id": 3, "name": "Кафе и рестораны", "icon": "restaurant" },
+  { "id": 4, "name": "Аптеки", "icon": "local_pharmacy" }
+]

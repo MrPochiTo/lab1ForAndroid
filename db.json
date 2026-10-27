@@ -1,0 +1,9 @@
+{
+  "cards": [
+    { "id": 1, "shopName": "Пятёрочка",      "barcodeNumber": "4600123456789", "categoryId": 1, "colorHex": 4280792370 },
+    { "id": 2, "shopName": "Магнит",          "barcodeNumber": "4600987654321", "categoryId": 1, "colorHex": 4291231784 },
+    { "id": 3, "shopName": "Zara",            "barcodeNumber": "2000000000015", "categoryId": 2, "colorHex": 4283716687 },
+    { "id": 4, "shopName": "Вкусно и точка",  "barcodeNumber": "1234567890123", "categoryId": 3, "colorHex": 4294923264 },
+    { "id": 5, "shopName": "Ригла",           "barcodeNumber": "9876543210987", "categoryId": 4, "colorHex": 4278243215 }
+  ]
+}

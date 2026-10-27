@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,16 +19,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.lab1.data.mockCategories
 import com.example.lab1.model.DiscountCard
 import com.example.lab1.ui.MainViewModel
+import com.example.lab1.ui.getCategoryIcon
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CardsScreen(
     viewModel: MainViewModel,
     onCardClick: (Int) -> Unit,
-    onAddCardClick: () -> Unit
+    onAddCardClick: () -> Unit,
+    onAiClick: () -> Unit
 ) {
     val cards by viewModel.cards.collectAsState()
 
@@ -47,8 +49,17 @@ fun CardsScreen(
                 title = { Text("Мои карты", fontWeight = FontWeight.SemiBold) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
-                )
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                actions = {
+                    IconButton(onClick = onAiClick) {
+                        Icon(
+                            Icons.Default.AutoAwesome,
+                            contentDescription = "AI-проверка коллекции"
+                        )
+                    }
+                }
             )
         },
         floatingActionButton = {
@@ -84,11 +95,18 @@ fun CardsScreen(
                         label = { Text("Все") }
                     )
                 }
-                items(mockCategories, key = { it.id }) { cat ->
+                items(viewModel.categories, key = { it.id }) { cat ->
                     FilterChip(
                         selected = viewModel.selectedCategoryId == cat.id,
                         onClick = { viewModel.selectedCategoryId = cat.id },
-                        label = { Text(cat.name) }
+                        label = { Text(cat.name) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = getCategoryIcon(cat.icon),
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
                     )
                 }
             }
@@ -103,7 +121,13 @@ fun CardsScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(visibleCards, key = { it.id }) { card ->
-                        CardItem(card = card, onClick = { onCardClick(card.id) })
+                        val category = viewModel.getCategory(card.categoryId)
+                        val categoryName = if (category != null) category.name else ""
+                        CardItem(
+                            card = card,
+                            categoryName = categoryName,
+                            onClick = { onCardClick(card.id) }
+                        )
                     }
                 }
             }
@@ -112,7 +136,7 @@ fun CardsScreen(
 }
 
 @Composable
-private fun CardItem(card: DiscountCard, onClick: () -> Unit) {
+private fun CardItem(card: DiscountCard, categoryName: String, onClick: () -> Unit) {
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -143,6 +167,11 @@ private fun CardItem(card: DiscountCard, onClick: () -> Unit) {
                 Spacer(Modifier.height(4.dp))
                 Text(
                     card.barcodeNumber,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    categoryName,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
